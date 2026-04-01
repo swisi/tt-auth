@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Anmelden – Tigers Auth{% endblock %}
+
+{% block content %}
+<div class="flex min-h-[70vh] items-center justify-center">
+    <div class="w-full max-w-md">
+        <!-- Card -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-indigo-600 to-indigo-500 px-8 py-6 text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-3">
+                    <i class="bi bi-shield-lock text-white text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-white">Thun Tigers</h1>
+                <p class="text-indigo-200 text-sm mt-1">Bitte melde dich an</p>
+            </div>
+
+            <!-- Form -->
+            <div class="px-8 py-6">
+                <form method="POST" action="{{ url_for('auth.login') }}" class="space-y-5">
+                    <!-- Username -->
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            Benutzername
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="bi bi-person text-slate-400"></i>
+                            </div>
+                            <input type="text" id="username" name="username"
+                                value="{{ form.username.data or '' }}"
+                                autocomplete="username"
+                                class="block w-full pl-9 pr-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                placeholder="Benutzername" required>
+                        </div>
+                        {% if form.username.errors %}
+                        <p class="mt-1 text-xs text-red-500">{{ form.username.errors[0] }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            Passwort
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="bi bi-lock text-slate-400"></i>
+                            </div>
+                            <input type="password" id="password" name="password"
+                                autocomplete="current-password"
+                                class="block w-full pl-9 pr-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                placeholder="••••••••" required>
+                        </div>
+                        {% if form.password.errors %}
+                        <p class="mt-1 text-xs text-red-500">{{ form.password.errors[0] }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit"
+                        class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-semibold rounded-lg transition shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800 text-sm">
+                        <i class="bi bi-box-arrow-in-right mr-2"></i>Anmelden
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

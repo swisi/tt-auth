@@ -1,0 +1,23 @@
+services:
+  tt-auth:
+    build: .
+    image: ghcr.io/swisi/tt-auth:latest
+    ports:
+      - "8086:5000"
+    volumes:
+      - tt-auth-data:/app/instance
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_EXPIRY_HOURS=${JWT_EXPIRY_HOURS:-8}
+      - JWT_COOKIE_DOMAIN=${JWT_COOKIE_DOMAIN:-.thun-tigers.net}
+      - JWT_COOKIE_SECURE=${JWT_COOKIE_SECURE:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - AUTO_CREATE_DB=true
+      - CREATE_DEFAULT_USERS=${CREATE_DEFAULT_USERS:-true}
+      - DEFAULT_ADMIN_USERNAME=${DEFAULT_ADMIN_USERNAME:-admin}
+      - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD}
+      - RATELIMIT_STORAGE_URI=memory://
+    restart: unless-stopped
+
+volumes:
+  tt-auth-data:
