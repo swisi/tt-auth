@@ -64,27 +64,42 @@ def _seed_default_services(app):
 
     from .models import Service
 
-    agenda_name = 'agenda'
-    existing = Service.query.filter_by(name=agenda_name).first()
-    if existing:
+    default_services = [
+        {
+            'name': 'agenda',
+            'url': app.config.get('DEFAULT_AGENDA_URL', 'http://localhost:8086'),
+            'icon': 'calendar-check',
+            'description': 'Trainingsverwaltung und Live-Agenda',
+            'required_role': 'user',
+            'sort_order': 10,
+        },
+        {
+            'name': 'analytics',
+            'url': app.config.get('DEFAULT_ANALYTICS_URL', 'http://localhost:8087'),
+            'icon': 'bar-chart-line',
+            'description': 'Spielanalyse, Scouting Reports und Videoauswertung',
+            'required_role': 'user',
+            'sort_order': 20,
+        },
+    ]
+
+    created = []
+    for service_data in default_services:
+        existing = Service.query.filter_by(name=service_data['name']).first()
+        if existing:
+            continue
+        db.session.add(Service(is_active=True, **service_data))
+        created.append(service_data['name'])
+
+    if not created:
         return
 
-    service = Service(
-        name=agenda_name,
-        url=app.config.get('DEFAULT_AGENDA_URL', 'http://localhost:8086'),
-        icon='calendar-check',
-        description='Trainingsverwaltung und Live-Agenda',
-        required_role='user',
-        is_active=True,
-        sort_order=10,
-    )
-    db.session.add(service)
     try:
         db.session.commit()
-        app.logger.info('Default service "agenda" created.')
+        app.logger.info('Default services created: %s', ', '.join(created))
     except IntegrityError:
         db.session.rollback()
-        app.logger.info('Default service "agenda" already exists.')
+        app.logger.info('Default service creation raced with another worker; continuing.')
 
 
 def _bootstrap_platform_admin_access(app):

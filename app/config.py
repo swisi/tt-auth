@@ -23,6 +23,7 @@ class Config:
     DEFAULT_ADMIN_USERNAME = os.environ.get('DEFAULT_ADMIN_USERNAME', 'admin')
     DEFAULT_ADMIN_PASSWORD = os.environ.get('DEFAULT_ADMIN_PASSWORD', 'admin')
     DEFAULT_AGENDA_URL = os.environ.get('DEFAULT_AGENDA_URL', 'http://localhost:8086')
+    DEFAULT_ANALYTICS_URL = os.environ.get('DEFAULT_ANALYTICS_URL', 'http://localhost:8087')
     SSO_SHARED_SECRET = os.environ.get('SSO_SHARED_SECRET') or SECRET_KEY
     SSO_TOKEN_EXPIRY_SECONDS = int(os.environ.get('SSO_TOKEN_EXPIRY_SECONDS', 60))
     RATELIMIT_STORAGE_URI = os.environ.get('RATELIMIT_STORAGE_URI', 'memory://')
