@@ -1,6 +1,7 @@
 import os
 import logging
 from flask import Flask
+from sqlalchemy.exc import IntegrityError
 from .config import Config
 from .extensions import db, migrate, limiter
 
@@ -47,8 +48,12 @@ def _seed_default_users(app):
         admin = User(username=admin_username, role='admin', is_active=True)
         admin.set_password(admin_password)
         db.session.add(admin)
-        db.session.commit()
-        app.logger.info(f'Default admin user "{admin_username}" created.')
+        try:
+            db.session.commit()
+            app.logger.info(f'Default admin user "{admin_username}" created.')
+        except IntegrityError:
+            db.session.rollback()
+            app.logger.info(f'Default admin user "{admin_username}" already exists.')
 
 
 def _seed_default_services(app):
@@ -65,7 +70,7 @@ def _seed_default_services(app):
 
     service = Service(
         name=agenda_name,
-        url=app.config.get('DEFAULT_AGENDA_URL', 'http://localhost:8085'),
+        url=app.config.get('DEFAULT_AGENDA_URL', 'http://localhost:8086'),
         icon='calendar-check',
         description='Trainingsverwaltung und Live-Agenda',
         required_role='user',
@@ -73,5 +78,9 @@ def _seed_default_services(app):
         sort_order=10,
     )
     db.session.add(service)
-    db.session.commit()
-    app.logger.info('Default service "agenda" created.')
+    try:
+        db.session.commit()
+        app.logger.info('Default service "agenda" created.')
+    except IntegrityError:
+        db.session.rollback()
+        app.logger.info('Default service "agenda" already exists.')

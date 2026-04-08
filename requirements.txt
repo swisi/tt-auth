@@ -8,3 +8,4 @@ python-dotenv==1.0.0
 gunicorn==21.2.0
 WTForms==3.2.1
 blinker==1.9.0
+psycopg[binary]==3.2.12
