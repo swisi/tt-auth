@@ -7,6 +7,11 @@ from ..jwt_utils import generate_sso_token
 bp = Blueprint('dashboard', __name__)
 
 
+@bp.route('/health')
+def health():
+    return {'status': 'ok'}, 200
+
+
 def get_service_audience(service):
     service_name = (service.name or '').strip().lower().replace(' ', '-')
     if service_name.startswith('tt-'):
