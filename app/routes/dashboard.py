@@ -1,5 +1,5 @@
 from urllib.parse import urlencode
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from ..models import Service, ServiceAccess
 from . import login_required
 from ..jwt_utils import generate_sso_token
@@ -22,6 +22,8 @@ def get_service_audience(service):
 @bp.route('/')
 @login_required
 def index(current_user):
+    requested_service = (request.args.get('next_service') or '').strip().lower()
+    requested_target = (request.args.get('next') or '').strip()
     service_access = (
         ServiceAccess.query
         .join(Service, Service.id == ServiceAccess.service_id)
@@ -37,9 +39,21 @@ def index(current_user):
     services = []
     for access in service_access:
         service = access.service
-        service.launch_url = url_for('dashboard.launch_service', service_id=service.id)
+        launch_kwargs = {'service_id': service.id}
+        if requested_target:
+            launch_kwargs['next'] = requested_target
+        service.launch_url = url_for('dashboard.launch_service', **launch_kwargs)
         service.assigned_role = access.role
+        service.audience = get_service_audience(service)
         services.append(service)
+
+    if requested_service:
+        matching_service = next((service for service in services if service.audience == requested_service), None)
+        if matching_service:
+            launch_kwargs = {'service_id': matching_service.id}
+            if requested_target:
+                launch_kwargs['next'] = requested_target
+            return redirect(url_for('dashboard.launch_service', **launch_kwargs))
 
     return render_template('dashboard.html', services=services, current_user=current_user)
 
@@ -69,5 +83,9 @@ def launch_service(current_user, service_id):
         service_role=access.role,
         platform_role=current_user.get('role'),
     )
-    query = urlencode({'token': token})
+    query_params = {'token': token}
+    next_target = (request.args.get('next') or '').strip()
+    if next_target:
+        query_params['next'] = next_target
+    query = urlencode(query_params)
     return redirect(f'{service_base}/auth/sso?{query}')

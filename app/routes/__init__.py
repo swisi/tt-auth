@@ -1,5 +1,5 @@
 import functools
-from flask import redirect, url_for, flash
+from flask import redirect, url_for, flash, request
 from ..jwt_utils import get_jwt_from_request, validate_jwt
 
 
@@ -11,7 +11,8 @@ def login_required(f):
         payload = validate_jwt(token) if token else None
         if not payload:
             flash('Bitte einloggen.', 'warning')
-            return redirect(url_for('auth.login'))
+            next_path = request.full_path if request.query_string else request.path
+            return redirect(url_for('auth.login', next=next_path))
         return f(*args, current_user=payload, **kwargs)
     return decorated
 
