@@ -23,6 +23,30 @@
                 {% endfor %}
             </div>
 
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Vorname</label>
+                    <input type="text" name="first_name" value="{{ form.first_name.data or '' }}"
+                        class="block w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    {% for error in form.first_name.errors %}<p class="mt-1 text-xs text-red-500">{{ error }}</p>{% endfor %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nachname</label>
+                    <input type="text" name="last_name" value="{{ form.last_name.data or '' }}"
+                        class="block w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    {% for error in form.last_name.errors %}<p class="mt-1 text-xs text-red-500">{{ error }}</p>{% endfor %}
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">E-Mail</label>
+                <input type="email" name="email" value="{{ form.email.data or '' }}"
+                    class="block w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                {% for error in form.email.errors %}
+                <p class="mt-1 text-xs text-red-500">{{ error }}</p>
+                {% endfor %}
+            </div>
+
             <!-- Password -->
             <div>
                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -48,6 +72,39 @@
                 </select>
                 <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Diese Rolle steuert nur den Zugriff auf die Plattform-Verwaltung in tt-auth.</p>
             </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Kontostatus</label>
+                <select name="account_status"
+                    class="block w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    {% for value, label in form.account_status.choices %}
+                    <option value="{{ value }}" {% if form.account_status.data == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {% if teams %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Beantragte Mannschaft</label>
+                    <select name="requested_team_id"
+                        class="block w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        {% for value, label in form.requested_team_id.choices %}
+                        <option value="{{ value }}" {% if form.requested_team_id.data == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Beantragte Rolle</label>
+                    <select name="requested_member_role"
+                        class="block w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        {% for value, label in form.requested_member_role.choices %}
+                        <option value="{{ value }}" {% if form.requested_member_role.data == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            {% endif %}
 
             <!-- Service Roles -->
             {% if services %}
@@ -83,12 +140,46 @@
             </div>
             {% endif %}
 
+            {% if teams %}
+            <div class="pt-2">
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Team-Mitgliedschaften</label>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Diese Angaben werden als Claims an die Apps weitergegeben.</p>
+                </div>
+                <div class="space-y-3">
+                    {% for team in teams %}
+                    <div class="grid grid-cols-1 sm:grid-cols-[1fr_180px] gap-3 items-center p-3 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700">
+                        <div>
+                            <div class="text-sm font-medium text-slate-900 dark:text-white">{{ team.name }}</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400">{{ team.code }}</div>
+                        </div>
+                        <select name="team_role_{{ team.id }}"
+                            class="block w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                            {% set selected_role = team_roles.get(team.id, 'none') %}
+                            <option value="none" {% if selected_role == 'none' %}selected{% endif %}>Keine</option>
+                            <option value="player" {% if selected_role == 'player' %}selected{% endif %}>Spieler</option>
+                            <option value="coach" {% if selected_role == 'coach' %}selected{% endif %}>Coach</option>
+                            <option value="head_coach" {% if selected_role == 'head_coach' %}selected{% endif %}>Head Coach</option>
+                        </select>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Active -->
             <div class="flex items-center gap-3">
                 <input type="checkbox" id="is_active" name="is_active" value="y"
                     {% if form.is_active.data %}checked{% endif %}
                     class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
                 <label for="is_active" class="text-sm font-medium text-slate-700 dark:text-slate-300">Benutzer aktiv</label>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <input type="checkbox" id="profile_complete" name="profile_complete" value="y"
+                    {% if form.profile_complete.data %}checked{% endif %}
+                    class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+                <label for="profile_complete" class="text-sm font-medium text-slate-700 dark:text-slate-300">Profil vollständig</label>
             </div>
 
             <!-- Actions -->

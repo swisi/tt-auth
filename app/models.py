@@ -10,14 +10,57 @@ class User(db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(16), nullable=False, default='user')  # 'admin' or 'user'
+    account_status = db.Column(db.String(16), nullable=False, default='active')  # draft, pending, active, suspended
+    profile_complete = db.Column(db.Boolean, default=False, nullable=False)
+    email = db.Column(db.String(255), unique=True, nullable=True)
+    first_name = db.Column(db.String(80), nullable=True)
+    last_name = db.Column(db.String(80), nullable=True)
+    display_name = db.Column(db.String(120), nullable=True)
+    requested_team_id = db.Column(db.Integer, db.ForeignKey('teams.id'), nullable=True)
+    requested_member_role = db.Column(db.String(32), nullable=True)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    requested_team = db.relationship('Team', foreign_keys=[requested_team_id], lazy='joined')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    @property
+    def can_login(self):
+        return self.is_active and self.account_status in {'draft', 'pending', 'active'}
+
+    def auth_claims(self):
+        memberships = [
+            membership.claim()
+            for membership in self.memberships
+            if membership.is_active
+        ]
+        pending_memberships = [
+            membership.claim()
+            for membership in self.memberships
+            if not membership.is_active
+        ]
+        return {
+            'profile_complete': self.profile_complete,
+            'account_status': self.account_status,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'display_name': self.full_name,
+            'email': self.email,
+            'memberships': memberships,
+            'pending_memberships': pending_memberships,
+            'teams': sorted({membership['team_code'] for membership in memberships if membership.get('team_code')}),
+            'member_roles': sorted({membership['member_role'] for membership in memberships if membership.get('member_role')}),
+        }
+
+    @property
+    def full_name(self):
+        name = ' '.join(part for part in (self.first_name, self.last_name) if part)
+        return name or self.display_name or self.username
 
     def __repr__(self):
         return f'<User {self.username} ({self.role})>'
@@ -54,3 +97,43 @@ class Service(db.Model):
 
     def __repr__(self):
         return f'<Service {self.name}>'
+
+
+class Team(db.Model):
+    __tablename__ = 'teams'
+
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(32), unique=True, nullable=False, index=True)
+    name = db.Column(db.String(120), nullable=False)
+    sort_order = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+
+    def __repr__(self):
+        return f'<Team {self.code}>'
+
+
+class TeamMembership(db.Model):
+    __tablename__ = 'team_memberships'
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'team_id', 'member_role', name='uq_user_team_member_role'),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'), nullable=False)
+    member_role = db.Column(db.String(32), nullable=False, default='player')  # player, coach, head_coach
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+
+    user = db.relationship('User', backref=db.backref('memberships', lazy=True, cascade='all, delete-orphan'))
+    team = db.relationship('Team', backref=db.backref('memberships', lazy=True, cascade='all, delete-orphan'))
+
+    def claim(self):
+        return {
+            'team_id': self.team_id,
+            'team_code': self.team.code if self.team else None,
+            'team_name': self.team.name if self.team else None,
+            'member_role': self.member_role,
+        }
+
+    def __repr__(self):
+        return f'<TeamMembership user={self.user_id} team={self.team_id} role={self.member_role}>'

@@ -1,6 +1,7 @@
 from urllib.parse import urlencode
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from ..models import Service, ServiceAccess
+from ..extensions import db
+from ..models import Service, ServiceAccess, User
 from . import login_required
 from ..jwt_utils import generate_sso_token
 
@@ -22,13 +23,18 @@ def get_service_audience(service):
 @bp.route('/')
 @login_required
 def index(current_user):
+    user = db.session.get(User, int(current_user['sub']))
+    if not user or not user.can_login:
+        flash('Dein Konto ist nicht aktiv.', 'warning')
+        return redirect(url_for('auth.logout'))
+
     requested_service = (request.args.get('next_service') or '').strip().lower()
     requested_target = (request.args.get('next') or '').strip()
     service_access = (
         ServiceAccess.query
         .join(Service, Service.id == ServiceAccess.service_id)
         .filter(
-            ServiceAccess.user_id == int(current_user['sub']),
+            ServiceAccess.user_id == user.id,
             ServiceAccess.is_active.is_(True),
             Service.is_active.is_(True),
         )
@@ -47,6 +53,12 @@ def index(current_user):
         service.audience = get_service_audience(service)
         services.append(service)
 
+    if user.account_status == 'draft' or not user.profile_complete:
+        member_services = [service for service in services if service.audience == 'tt-members']
+        if member_services:
+            services = member_services
+            flash('Bitte vervollstaendige zuerst dein Profil.', 'warning')
+
     if requested_service:
         matching_service = next((service for service in services if service.audience == requested_service), None)
         if matching_service:
@@ -61,13 +73,22 @@ def index(current_user):
 @bp.route('/launch/<int:service_id>')
 @login_required
 def launch_service(current_user, service_id):
+    user = db.session.get(User, int(current_user['sub']))
+    if not user or not user.can_login:
+        flash('Dein Konto ist nicht aktiv.', 'warning')
+        return redirect(url_for('auth.logout'))
+
     service = Service.query.filter_by(id=service_id, is_active=True).first()
     if not service:
         flash('Service nicht gefunden oder deaktiviert.', 'danger')
         return redirect(url_for('dashboard.index'))
 
+    if user.account_status == 'draft' and get_service_audience(service) != 'tt-members':
+        flash('Vor dem Antrag muss das Mitgliederprofil vervollstaendigt werden.', 'warning')
+        return redirect(url_for('dashboard.index'))
+
     access = ServiceAccess.query.filter_by(
-        user_id=int(current_user['sub']),
+        user_id=user.id,
         service_id=service.id,
         is_active=True,
     ).first()
@@ -78,10 +99,10 @@ def launch_service(current_user, service_id):
     service_base = (service.url or '').rstrip('/')
     audience = get_service_audience(service)
     token = generate_sso_token(
-        current_user,
+        user,
         audience=audience,
         service_role=access.role,
-        platform_role=current_user.get('role'),
+        platform_role=user.role,
     )
     query_params = {'token': token}
     next_target = (request.args.get('next') or '').strip()

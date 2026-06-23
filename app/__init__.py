@@ -30,17 +30,22 @@ def create_app(config_class=Config):
     from .routes.dashboard import bp as dashboard_bp
     from .routes.users import bp as users_bp
     from .routes.services import bp as services_bp
+    from .routes.api import bp as api_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(users_bp)
     app.register_blueprint(services_bp)
+    app.register_blueprint(api_bp)
 
     with app.app_context():
         if app.config.get('AUTO_CREATE_DB', True):
             db.create_all()
+            _ensure_lightweight_schema_updates(app)
             _seed_default_users(app)
             _seed_default_services(app)
+            _seed_default_teams(app)
+            _bootstrap_default_user_access(app)
             _bootstrap_platform_admin_access(app)
 
     return app
@@ -71,6 +76,14 @@ def _seed_default_services(app):
     from .models import Service
 
     default_services = [
+        {
+            'name': 'members',
+            'url': app.config.get('DEFAULT_MEMBERS_URL', 'http://localhost:8088'),
+            'icon': 'person-badge',
+            'description': 'Profile, Teams und Mitgliedschaften',
+            'required_role': 'user',
+            'sort_order': 5,
+        },
         {
             'name': 'agenda',
             'url': app.config.get('DEFAULT_AGENDA_URL', 'http://localhost:8086'),
@@ -122,10 +135,15 @@ def _bootstrap_platform_admin_access(app):
 
     changed = False
     for admin in admins:
-        has_explicit_access = ServiceAccess.query.filter_by(user_id=admin.id).first()
-        if has_explicit_access:
-            continue
+        if not admin.profile_complete or admin.account_status != 'active':
+            admin.profile_complete = True
+            admin.account_status = 'active'
+            admin.is_active = True
+            changed = True
         for service in services:
+            has_service_access = ServiceAccess.query.filter_by(user_id=admin.id, service_id=service.id).first()
+            if has_service_access:
+                continue
             db.session.add(ServiceAccess(user_id=admin.id, service_id=service.id, role='admin', is_active=True))
             changed = True
 
@@ -135,3 +153,97 @@ def _bootstrap_platform_admin_access(app):
             app.logger.info('Bootstrapped initial service access for platform admins.')
         except IntegrityError:
             db.session.rollback()
+
+
+def _bootstrap_default_user_access(app):
+    """Ensure Members and Agenda are available to every active account."""
+    from .models import User, Service, ServiceAccess
+
+    users = User.query.filter_by(is_active=True).all()
+    services = Service.query.filter(
+        Service.name.in_(['members', 'agenda']),
+        Service.is_active.is_(True),
+    ).all()
+    changed = False
+
+    for user in users:
+        for service in services:
+            access = ServiceAccess.query.filter_by(user_id=user.id, service_id=service.id).first()
+            if access:
+                if not access.is_active:
+                    access.is_active = True
+                    changed = True
+                continue
+            db.session.add(ServiceAccess(user_id=user.id, service_id=service.id, role='user', is_active=True))
+            changed = True
+
+    if changed:
+        try:
+            db.session.commit()
+            app.logger.info('Bootstrapped Members and Agenda access for all users.')
+        except IntegrityError:
+            db.session.rollback()
+
+
+def _seed_default_teams(app):
+    from .models import Team
+
+    default_teams = [
+        ('U13', 'U13', 10),
+        ('U16', 'U16', 20),
+        ('U19', 'U19', 30),
+        ('SENIORS', 'Seniors', 40),
+        ('ULTIMATE_FLAG', 'Ultimate Flag', 50),
+    ]
+    changed = False
+    for code, name, sort_order in default_teams:
+        if Team.query.filter_by(code=code).first():
+            continue
+        db.session.add(Team(code=code, name=name, sort_order=sort_order, is_active=True))
+        changed = True
+    if changed:
+        try:
+            db.session.commit()
+            app.logger.info('Default teams created.')
+        except IntegrityError:
+            db.session.rollback()
+
+
+def _ensure_lightweight_schema_updates(app):
+    """Apply small additive schema updates for local/dev databases.
+
+    Proper Alembic migrations should replace this before production rollout.
+    """
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(db.engine)
+    if 'users' not in inspector.get_table_names():
+        return
+
+    columns = {column['name'] for column in inspector.get_columns('users')}
+    statements = []
+    dialect = db.engine.dialect.name
+    bool_false = 'false' if dialect == 'postgresql' else '0'
+
+    if 'account_status' not in columns:
+        statements.append("ALTER TABLE users ADD COLUMN account_status VARCHAR(16) NOT NULL DEFAULT 'active'")
+    if 'profile_complete' not in columns:
+        statements.append(f"ALTER TABLE users ADD COLUMN profile_complete BOOLEAN NOT NULL DEFAULT {bool_false}")
+    if 'email' not in columns:
+        statements.append('ALTER TABLE users ADD COLUMN email VARCHAR(255)')
+    if 'first_name' not in columns:
+        statements.append('ALTER TABLE users ADD COLUMN first_name VARCHAR(80)')
+    if 'last_name' not in columns:
+        statements.append('ALTER TABLE users ADD COLUMN last_name VARCHAR(80)')
+    if 'display_name' not in columns:
+        statements.append('ALTER TABLE users ADD COLUMN display_name VARCHAR(120)')
+    if 'requested_team_id' not in columns:
+        statements.append('ALTER TABLE users ADD COLUMN requested_team_id INTEGER')
+    if 'requested_member_role' not in columns:
+        statements.append('ALTER TABLE users ADD COLUMN requested_member_role VARCHAR(32)')
+
+    for statement in statements:
+        db.session.execute(text(statement))
+    if statements:
+        db.session.commit()
+        app.logger.info('Applied lightweight auth schema updates.')
