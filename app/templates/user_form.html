@@ -70,7 +70,7 @@
                     <option value="{{ value }}" {% if form.role.data == value %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Diese Rolle steuert nur den Zugriff auf die Plattform-Verwaltung in tt-auth.</p>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Nur für die Verwaltung in tt-auth. Diese Rolle gibt keinen Zugriff auf Teams oder Apps.</p>
             </div>
 
             <div>
@@ -83,42 +83,12 @@
                 </select>
             </div>
 
-            {% if teams %}
-            <div class="pt-2">
-                <div class="mb-3">
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Beantragte Team-Rollen</label>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Mehrfachauswahl pro Team möglich. Diese Einträge bleiben als Antrag (pending), bis sie freigegeben werden.</p>
-                </div>
-                <div class="space-y-3">
-                    {% for team in teams %}
-                    {% set selected_pending_roles = pending_roles.get(team.id, []) %}
-                    <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-                        <div class="mb-2">
-                            <div class="text-sm font-medium text-slate-900 dark:text-white">{{ team.name }}</div>
-                            <div class="text-xs text-slate-500 dark:text-slate-400">{{ team.code }}</div>
-                        </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            {% for role_value, role_label in [('player', 'Spieler'), ('coach', 'Coach'), ('head_coach', 'Head Coach'), ('team_manager', 'Team-Manager')] %}
-                            <label class="inline-flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
-                                <input type="checkbox" name="pending_role_{{ team.id }}_{{ role_value }}" value="1"
-                                    {% if role_value in selected_pending_roles %}checked{% endif %}
-                                    class="w-4 h-4 text-amber-600 border-slate-300 rounded focus:ring-amber-500">
-                                <span>{{ role_label }}</span>
-                            </label>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
             <!-- Service Roles -->
             {% if services %}
             <div class="pt-2">
                 <div class="mb-3">
                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Service-Rollen</label>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Hier wird festgelegt, auf welche Microservices der Benutzer Zugriff hat und ob er dort Administrator ist.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Diese Rollen steuern den Zugriff auf die einzelnen Apps. Sie sind unabhängig von den Team-Mitgliedschaften.</p>
                 </div>
                 <div class="space-y-3">
                     {% for service in services %}
@@ -140,34 +110,6 @@
                             <option value="none" {% if selected_role == 'none' %}selected{% endif %}>Kein Zugriff</option>
                             <option value="user" {% if selected_role == 'user' %}selected{% endif %}>Benutzer</option>
                             <option value="admin" {% if selected_role == 'admin' %}selected{% endif %}>Administrator</option>
-                        </select>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            {% if teams %}
-            <div class="pt-2">
-                <div class="mb-3">
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Team-Mitgliedschaften</label>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Diese Angaben werden als Claims an die Apps weitergegeben.</p>
-                </div>
-                <div class="space-y-3">
-                    {% for team in teams %}
-                    <div class="grid grid-cols-1 sm:grid-cols-[1fr_180px] gap-3 items-center p-3 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700">
-                        <div>
-                            <div class="text-sm font-medium text-slate-900 dark:text-white">{{ team.name }}</div>
-                            <div class="text-xs text-slate-500 dark:text-slate-400">{{ team.code }}</div>
-                        </div>
-                        <select name="team_role_{{ team.id }}"
-                            class="block w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
-                            {% set selected_role = team_roles.get(team.id, 'none') %}
-                            <option value="none" {% if selected_role == 'none' %}selected{% endif %}>Keine</option>
-                            <option value="player" {% if selected_role == 'player' %}selected{% endif %}>Spieler</option>
-                            <option value="coach" {% if selected_role == 'coach' %}selected{% endif %}>Coach</option>
-                            <option value="head_coach" {% if selected_role == 'head_coach' %}selected{% endif %}>Head Coach</option>
-                            <option value="team_manager" {% if selected_role == 'team_manager' %}selected{% endif %}>Team-Manager</option>
                         </select>
                     </div>
                     {% endfor %}

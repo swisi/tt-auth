@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Stammdaten - Tigers Auth{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Stammdaten: Positionen</h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Zentrale Liste für Profil und Agenda.</p>
+    </div>
+
+    <section class="bg-white dark:bg-slate-800 rounded-2xl shadow border border-slate-200 dark:border-slate-700 p-6">
+        <h2 class="text-base font-semibold mb-4">Neue Position</h2>
+        <form method="POST" action="{{ url_for('master_data.positions_new') }}" class="grid grid-cols-1 md:grid-cols-[160px_1fr_120px_auto] gap-3 items-end">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Schlüssel</label>
+                <input type="text" name="key" maxlength="40" required placeholder="QB"
+                    class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-sm uppercase">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Bezeichnung</label>
+                <input type="text" name="label" maxlength="100" required placeholder="Quarterback"
+                    class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Sortierung</label>
+                <input type="number" name="sort_order" value="0" min="0"
+                    class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-sm">
+            </div>
+            <button type="submit" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition text-sm">
+                <i class="bi bi-plus-lg"></i> Speichern
+            </button>
+        </form>
+    </section>
+
+    <section class="bg-white dark:bg-slate-800 rounded-2xl shadow border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+            <h2 class="text-base font-semibold">Vorhandene Positionen</h2>
+            <span class="text-sm text-slate-500 dark:text-slate-400">{{ positions|length }} Einträge</span>
+        </div>
+        <div class="divide-y divide-slate-100 dark:divide-slate-700">
+            {% for position in positions %}
+            <form method="POST" action="{{ url_for('master_data.positions_edit', key=position.key) }}"
+                class="grid grid-cols-1 md:grid-cols-[160px_1fr_120px_auto] gap-3 items-center px-6 py-4 {% if not position.is_active %}bg-slate-50 dark:bg-slate-900/30{% endif %}">
+                <div>
+                    <label class="md:hidden block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Schlüssel</label>
+                    <input type="text" value="{{ position.key }}" readonly
+                        class="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-sm font-semibold uppercase">
+                </div>
+                <div>
+                    <label class="md:hidden block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Bezeichnung</label>
+                    <input type="text" name="label" value="{{ position.label }}" maxlength="100" required
+                        class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-sm">
+                </div>
+                <div>
+                    <label class="md:hidden block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Sortierung</label>
+                    <input type="number" name="sort_order" value="{{ position.sort_order }}" min="0"
+                        class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-sm">
+                </div>
+                <div class="flex items-center gap-3 justify-between">
+                    <label class="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                        <input type="checkbox" name="is_active" value="y" {% if position.is_active %}checked{% endif %}
+                            class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+                        Aktiv
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <button type="submit" class="px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition">
+                            Speichern
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <div class="px-6 pb-4 flex justify-end">
+                <form method="POST" action="{{ url_for('master_data.positions_delete', key=position.key) }}" onsubmit="return confirm('Position {{ position.key }} wirklich löschen?')">
+                    <button type="submit" class="text-xs font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                        Löschen
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <div class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
+                Keine Stammdaten vorhanden.
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

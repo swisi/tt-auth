@@ -152,9 +152,6 @@ def _build_permissions(service_role, platform_role, memberships):
             permissions.add(f'team:{team_code}:write')
         if member_role == 'head_coach':
             permissions.add(f'team:{team_code}:admin')
-        if member_role == 'team_manager':
-            permissions.add(f'team:{team_code}:manage_users')
-            permissions.add('users:approve')
     return sorted(permissions)
 
 

@@ -30,12 +30,14 @@ def create_app(config_class=Config):
     from .routes.dashboard import bp as dashboard_bp
     from .routes.users import bp as users_bp
     from .routes.services import bp as services_bp
+    from .routes.master_data import bp as master_data_bp
     from .routes.api import bp as api_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(users_bp)
     app.register_blueprint(services_bp)
+    app.register_blueprint(master_data_bp)
     app.register_blueprint(api_bp)
 
     # Context processor: pending_users_count für Admin-Badge in allen Templates
