@@ -40,48 +40,59 @@
 <body class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-slate-900 dark:text-slate-50">
 
     <!-- Navigation -->
-    <header class="sticky top-0 z-50 bg-white dark:bg-slate-800 shadow-md border-b border-slate-200 dark:border-slate-700">
+    <header class="sticky top-0 z-50 border-b border-slate-200/80 dark:border-slate-700/80 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl shadow-sm">
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
+            <div class="flex min-h-[4.5rem] items-center justify-between gap-4 py-3">
 
-                <!-- Logo -->
-                <a href="{{ url_for('dashboard.index') }}" class="flex items-center gap-3 text-xl font-bold text-indigo-600 dark:text-indigo-400 hover:opacity-80 transition">
-                    <div class="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
+                <a href="{{ url_for('dashboard.index') }}" class="flex items-center gap-3 text-slate-900 dark:text-white hover:opacity-90 transition">
+                    <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top_left,_#c7d2fe,_#6366f1_60%,_#1e1b4b)] text-white shadow-lg shadow-indigo-500/20">
                         <i class="bi bi-shield-lock text-lg"></i>
                     </div>
-                    <span class="hidden sm:inline">Tigers Auth</span>
+                    <div>
+                        <div class="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-indigo-500 dark:text-indigo-300">Tigers</div>
+                        <div class="text-lg font-semibold leading-tight">Auth</div>
+                    </div>
                 </a>
 
-                <!-- Nav Links -->
-                <div class="flex items-center gap-1">
-                    {% if current_user %}
-                        <a href="{{ url_for('dashboard.index') }}" class="px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-700 transition">
-                            <i class="bi bi-grid mr-1"></i><span class="hidden sm:inline">Dashboard</span>
-                        </a>
-                        {% if current_user.role == 'admin' %}
-                        <a href="{{ url_for('users.index') }}" class="relative px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-700 transition">
-                            <i class="bi bi-people mr-1"></i><span class="hidden sm:inline">Benutzer</span>
-                            {% if pending_users_count > 0 %}
-                            <span class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
-                                {{ pending_users_count if pending_users_count < 100 else '99+' }}
-                            </span>
-                            {% endif %}
-                        </a>
-                        <a href="{{ url_for('services.index') }}" class="px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-700 transition">
-                            <i class="bi bi-app-indicator mr-1"></i><span class="hidden sm:inline">Services</span>
-                        </a>
+                {% if current_user %}
+                <div class="hidden lg:flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-900/50 p-1.5">
+                    {% set ep = request.endpoint %}
+                    <a href="{{ url_for('dashboard.index') }}" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition {{ 'bg-white dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 shadow-sm ring-1 ring-indigo-100 dark:ring-indigo-900/60' if ep == 'dashboard.index' else 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white' }}">
+                        <i class="bi bi-grid text-sm"></i><span>Dashboard</span>
+                    </a>
+                    {% if current_user.role == 'admin' %}
+                    <a href="{{ url_for('users.index') }}" class="relative inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition {{ 'bg-white dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 shadow-sm ring-1 ring-indigo-100 dark:ring-indigo-900/60' if ep in ['users.index', 'users.new', 'users.edit'] else 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white' }}">
+                        <i class="bi bi-people text-sm"></i><span>Benutzer</span>
+                        {% if pending_users_count > 0 %}
+                        <span class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                            {{ pending_users_count if pending_users_count < 100 else '99+' }}
+                        </span>
                         {% endif %}
+                    </a>
+                    <a href="{{ url_for('services.index') }}" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition {{ 'bg-white dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 shadow-sm ring-1 ring-indigo-100 dark:ring-indigo-900/60' if ep in ['services.index', 'services.new', 'services.edit'] else 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white' }}">
+                        <i class="bi bi-app-indicator text-sm"></i><span>Services</span>
+                    </a>
                     {% endif %}
                 </div>
+                {% endif %}
 
-                <!-- Right Section -->
-                <div class="flex items-center gap-2">
-                    <!-- Theme Toggle -->
+                <div class="flex items-center gap-2 sm:gap-4">
+                    {% if current_user %}
+                    <a href="{{ url_for('dashboard.index') }}" class="hidden md:inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-indigo-200 dark:hover:border-indigo-700 transition">
+                        <i class="bi bi-grid"></i>
+                        <span>Plattform</span>
+                    </a>
+                    {% endif %}
+
                     <button id="themeToggle" class="p-2 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Design-Modus wechseln">
                         <i class="bi bi-moon-fill" id="themeIcon"></i>
                     </button>
 
                     {% if current_user %}
+                    <button id="mobileMenuToggle" class="lg:hidden p-2 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Navigation öffnen" aria-expanded="false" aria-controls="mobileNav">
+                        <i class="bi bi-list text-xl"></i>
+                    </button>
+
                     <div class="flex items-center gap-3 pl-3 border-l border-slate-200 dark:border-slate-600">
                         <a href="{{ url_for('dashboard.profile') }}" class="inline-flex items-center gap-3 rounded-lg px-1.5 py-1 hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Mein Profil">
                             <div class="hidden sm:block text-right">
@@ -99,6 +110,33 @@
                     {% endif %}
                 </div>
             </div>
+
+            {% if current_user %}
+            <div id="mobileNav" class="lg:hidden hidden pb-4">
+                <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/70 shadow-sm overflow-hidden">
+                    <div class="grid grid-cols-1 gap-2 p-3 border-b border-slate-200 dark:border-slate-700 sm:grid-cols-2">
+                        {% set ep = request.endpoint %}
+                        <a href="{{ url_for('dashboard.index') }}" class="inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition {{ 'bg-indigo-600 text-white shadow-sm' if ep == 'dashboard.index' else 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700' }}">
+                            <i class="bi bi-grid"></i><span>Dashboard</span>
+                        </a>
+                        {% if current_user.role == 'admin' %}
+                        <a href="{{ url_for('users.index') }}" class="inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition {{ 'bg-indigo-600 text-white shadow-sm' if ep in ['users.index', 'users.new', 'users.edit'] else 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700' }}">
+                            <i class="bi bi-people"></i><span>Benutzer</span>
+                        </a>
+                        <a href="{{ url_for('services.index') }}" class="inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition {{ 'bg-indigo-600 text-white shadow-sm' if ep in ['services.index', 'services.new', 'services.edit'] else 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700' }}">
+                            <i class="bi bi-app-indicator"></i><span>Services</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                    <div class="p-3">
+                        <a href="{{ url_for('dashboard.profile') }}" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                            <i class="bi bi-person"></i>
+                            <span>Mein Profil</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </nav>
     </header>
 
@@ -128,6 +166,8 @@
     <script>
         const toggle = document.getElementById('themeToggle');
         const icon = document.getElementById('themeIcon');
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileNav = document.getElementById('mobileNav');
 
         function readCookie(name) {
             const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
@@ -185,6 +225,13 @@
                 applyTheme('system');
             }
         });
+
+        if (mobileMenuToggle && mobileNav) {
+            mobileMenuToggle.addEventListener('click', () => {
+                const isHidden = mobileNav.classList.toggle('hidden');
+                mobileMenuToggle.setAttribute('aria-expanded', String(!isHidden));
+            });
+        }
     </script>
 
     {% block extra_js %}{% endblock %}
