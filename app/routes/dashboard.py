@@ -1,5 +1,5 @@
 from urllib.parse import urlencode
-from flask import Blueprint, render_template, redirect, url_for, flash, request, make_response
+from flask import Blueprint, render_template, redirect, url_for, flash, request, make_response, current_app
 from ..extensions import db
 from ..models import Service, ServiceAccess, User
 from . import login_required
@@ -94,7 +94,7 @@ def profile(current_user):
     if access:
         members_profile_url = url_for('dashboard.launch_service', service_id=access.service_id, next='/profile')
 
-    selected_theme = (request.cookies.get('tt_theme') or 'system').strip().lower()
+    selected_theme = (request.cookies.get('tt_theme_global') or request.cookies.get('tt_theme') or 'system').strip().lower()
     if selected_theme not in {'light', 'dark', 'system'}:
         selected_theme = 'system'
 
@@ -149,7 +149,9 @@ def profile(current_user):
                 preference = 'system'
 
             response = make_response(redirect(url_for('dashboard.profile')))
-            response.set_cookie('tt_theme', preference, max_age=31536000, samesite='Lax')
+            theme_domain = current_app.config.get('JWT_COOKIE_DOMAIN') or None
+            response.set_cookie('tt_theme', preference, max_age=31536000, samesite='Lax', domain=theme_domain)
+            response.set_cookie('tt_theme_global', preference, max_age=31536000, samesite='Lax', domain=theme_domain)
             flash('Designmodus wurde gespeichert.', 'success')
             return response
 
