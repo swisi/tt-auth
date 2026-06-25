@@ -71,15 +71,39 @@ def clear_jwt_cookie(response):
     cookie_name = current_app.config.get('JWT_COOKIE_NAME', 'tt_jwt')
     domain = current_app.config.get('JWT_COOKIE_DOMAIN')
     secure = current_app.config.get('JWT_COOKIE_SECURE', False)
-    response.set_cookie(
+
+    # Remove host-only cookie variant first.
+    response.delete_cookie(
         cookie_name,
-        '',
-        max_age=0,
-        httponly=True,
+        path='/',
         secure=secure,
+        httponly=True,
         samesite='Lax',
-        domain=domain,
     )
+
+    domains = set()
+    if domain:
+        domains.add(domain)
+        domains.add(domain.lstrip('.'))
+
+    host = (request.host or '').split(':', 1)[0]
+    if host:
+        domains.add(host)
+
+        host_parts = host.split('.')
+        if len(host_parts) >= 2:
+            domains.add('.' + '.'.join(host_parts[-2:]))
+
+    for candidate in sorted(d for d in domains if d):
+        response.delete_cookie(
+            cookie_name,
+            path='/',
+            domain=candidate,
+            secure=secure,
+            httponly=True,
+            samesite='Lax',
+        )
+
     return response
 
 
