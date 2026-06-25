@@ -70,7 +70,7 @@
                     <option value="{{ value }}" {% if form.role.data == value %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Nur für die Verwaltung in tt-auth. Diese Rolle gibt keinen Zugriff auf Teams oder Apps.</p>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Administrator ist ein Plattform-Admin und erhaelt automatisch Admin-Zugriff auf alle aktiven Services.</p>
             </div>
 
             <div>
@@ -88,7 +88,7 @@
             <div class="pt-2">
                 <div class="mb-3">
                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Service-Rollen</label>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Diese Rollen steuern den Zugriff auf die einzelnen Apps. Sie sind unabhängig von den Team-Mitgliedschaften.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Diese Rollen steuern den Zugriff auf die einzelnen Apps. Fuer Plattform-Admins werden sie automatisch auf Administrator gesetzt.</p>
                 </div>
                 <div class="space-y-3">
                     {% for service in services %}

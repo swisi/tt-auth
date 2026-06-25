@@ -144,10 +144,7 @@ def _seed_default_services(app):
 
 
 def _bootstrap_platform_admin_access(app):
-    """Bootstrap initial service access for existing platform admins.
-
-    This only runs for admins who do not have any explicit service access yet.
-    """
+    """Ensure platform admins have active admin access to every active service."""
     from .models import User, Service, ServiceAccess
 
     admins = User.query.filter_by(role='admin', is_active=True).all()
@@ -163,8 +160,14 @@ def _bootstrap_platform_admin_access(app):
             admin.is_active = True
             changed = True
         for service in services:
-            has_service_access = ServiceAccess.query.filter_by(user_id=admin.id, service_id=service.id).first()
-            if has_service_access:
+            access = ServiceAccess.query.filter_by(user_id=admin.id, service_id=service.id).first()
+            if access:
+                if access.role != 'admin':
+                    access.role = 'admin'
+                    changed = True
+                if not access.is_active:
+                    access.is_active = True
+                    changed = True
                 continue
             db.session.add(ServiceAccess(user_id=admin.id, service_id=service.id, role='admin', is_active=True))
             changed = True

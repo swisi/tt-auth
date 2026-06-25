@@ -55,6 +55,20 @@ def _submit_position(method, key=None, payload=None):
     return True, None
 
 
+def _submit_position_reorder(order):
+    url = f'{_infra_base()}/api/master-data/positions/reorder'
+    try:
+        response = requests.post(url, json={'order': order}, headers=_infra_headers(), timeout=4)
+    except requests.RequestException as exc:
+        current_app.logger.warning('tt-infra positions reorder failed: %s', exc)
+        return False, 'Reihenfolge konnte nicht gespeichert werden.'
+
+    if response.status_code >= 400:
+        current_app.logger.warning('tt-infra positions reorder failed: %s %s', response.status_code, response.text)
+        return False, 'Reihenfolge konnte nicht gespeichert werden.'
+    return True, None
+
+
 @bp.route('/positions', methods=['GET'])
 @login_required
 @admin_required
@@ -106,4 +120,14 @@ def positions_edit(current_user, key):
 def positions_delete(current_user, key):
     ok, error = _submit_position('DELETE', key=key)
     flash('Position gelöscht.' if ok else error, 'success' if ok else 'danger')
+    return redirect(url_for('master_data.positions'))
+
+
+@bp.route('/positions/reorder', methods=['POST'])
+@login_required
+@admin_required
+def positions_reorder(current_user):
+    order = request.form.getlist('order')
+    ok, error = _submit_position_reorder(order)
+    flash('Reihenfolge gespeichert.' if ok else error, 'success' if ok else 'danger')
     return redirect(url_for('master_data.positions'))

@@ -8,80 +8,297 @@
         <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Zentrale Liste für Profil und Agenda.</p>
     </div>
 
-    <section class="bg-white dark:bg-slate-800 rounded-2xl shadow border border-slate-200 dark:border-slate-700 p-6">
-        <h2 class="text-base font-semibold mb-4">Neue Position</h2>
-        <form method="POST" action="{{ url_for('master_data.positions_new') }}" class="grid grid-cols-1 md:grid-cols-[160px_1fr_120px_auto] gap-3 items-end">
-            <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Schlüssel</label>
-                <input type="text" name="key" maxlength="40" required placeholder="QB"
-                    class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-sm uppercase">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Bezeichnung</label>
-                <input type="text" name="label" maxlength="100" required placeholder="Quarterback"
-                    class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-sm">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Sortierung</label>
-                <input type="number" name="sort_order" value="0" min="0"
-                    class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-sm">
-            </div>
-            <button type="submit" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition text-sm">
-                <i class="bi bi-plus-lg"></i> Speichern
-            </button>
-        </form>
-    </section>
-
     <section class="bg-white dark:bg-slate-800 rounded-2xl shadow border border-slate-200 dark:border-slate-700 overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
-            <h2 class="text-base font-semibold">Vorhandene Positionen</h2>
-            <span class="text-sm text-slate-500 dark:text-slate-400">{{ positions|length }} Einträge</span>
+            <div>
+                <h2 class="text-base font-semibold">Vorhandene Positionen</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Ziehen zum Sortieren. Bearbeiten und Löschen direkt in der Zeile.</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-slate-500 dark:text-slate-400 mr-2">{{ positions|length }} Einträge</span>
+                <button type="button" class="add-new-btn inline-flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-100 font-semibold rounded-lg transition text-sm">
+                    <i class="bi bi-plus-lg"></i> Neu
+                </button>
+                <button type="button" class="save-order-btn inline-flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition text-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <i class="bi bi-check-lg"></i> Speichern
+                </button>
+            </div>
         </div>
-        <div class="divide-y divide-slate-100 dark:divide-slate-700">
-            {% for position in positions %}
-            <form method="POST" action="{{ url_for('master_data.positions_edit', key=position.key) }}"
-                class="grid grid-cols-1 md:grid-cols-[160px_1fr_120px_auto] gap-3 items-center px-6 py-4 {% if not position.is_active %}bg-slate-50 dark:bg-slate-900/30{% endif %}">
+        <div id="new-position-panel" class="hidden px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900/20">
+            <form method="POST" action="{{ url_for('master_data.positions_new') }}" class="grid grid-cols-1 md:grid-cols-[140px_1fr_auto_auto] gap-3 items-end">
                 <div>
-                    <label class="md:hidden block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Schlüssel</label>
-                    <input type="text" value="{{ position.key }}" readonly
-                        class="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-sm font-semibold uppercase">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Schlüssel</label>
+                    <input id="new-position-key" type="text" name="key" maxlength="40" required placeholder="QB"
+                        class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-sm uppercase">
                 </div>
                 <div>
-                    <label class="md:hidden block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Bezeichnung</label>
-                    <input type="text" name="label" value="{{ position.label }}" maxlength="100" required
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Bezeichnung</label>
+                    <input type="text" name="label" maxlength="100" required placeholder="Quarterback"
                         class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-sm">
                 </div>
-                <div>
-                    <label class="md:hidden block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Sortierung</label>
-                    <input type="number" name="sort_order" value="{{ position.sort_order }}" min="0"
-                        class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-sm">
-                </div>
-                <div class="flex items-center gap-3 justify-between">
-                    <label class="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                        <input type="checkbox" name="is_active" value="y" {% if position.is_active %}checked{% endif %}
-                            class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
-                        Aktiv
-                    </label>
-                    <div class="flex items-center gap-2">
-                        <button type="submit" class="px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition">
-                            Speichern
-                        </button>
-                    </div>
-                </div>
+                <input id="new-position-sort-order" type="hidden" name="sort_order" value="{{ (positions|length) + 1 }}">
+                <button type="button" id="new-position-cancel" class="inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                    Abbrechen
+                </button>
+                <button type="submit" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition text-sm">
+                    <i class="bi bi-plus-lg"></i> Speichern
+                </button>
             </form>
-            <div class="px-6 pb-4 flex justify-end">
-                <form method="POST" action="{{ url_for('master_data.positions_delete', key=position.key) }}" onsubmit="return confirm('Position {{ position.key }} wirklich löschen?')">
-                    <button type="submit" class="text-xs font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
-                        Löschen
-                    </button>
-                </form>
-            </div>
-            {% else %}
-            <div class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
-                Keine Stammdaten vorhanden.
-            </div>
-            {% endfor %}
         </div>
+        <div class="overflow-x-auto">
+            <table class="js-smart-table w-full text-sm" data-table-filter-placeholder="Positionen filtern...">
+                <thead class="bg-slate-50 dark:bg-slate-700/50">
+                    <tr>
+                        <th class="w-10 px-4 py-3"></th>
+                        <th class="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">Schlüssel</th>
+                        <th class="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">Bezeichnung</th>
+                        <th class="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">Status</th>
+                        <th class="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300">Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody id="positions-table-body" class="divide-y divide-slate-100 dark:divide-slate-700">
+            {% for position in positions %}
+                        <tr class="position-row {% if not position.is_active %}bg-slate-50 dark:bg-slate-900/30{% endif %}" data-key="{{ position.key }}" draggable="true">
+                            <td class="px-4 py-3 align-middle">
+                                <button type="button" class="drag-handle inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-200 cursor-grab" title="Reihenfolge ändern" aria-label="Reihenfolge ändern">
+                                    <i class="bi bi-grip-vertical"></i>
+                                </button>
+                            </td>
+                            <td class="px-4 py-3 align-middle">
+                                <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold uppercase tracking-wide">
+                                    <span class="sort-number inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-white/70 dark:bg-slate-800 text-[11px]">{{ position.sort_order }}</span>
+                                    <span>{{ position.key }}</span>
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 align-middle">
+                                <div class="font-medium text-slate-900 dark:text-white">{{ position.label }}</div>
+                            </td>
+                            <td class="px-4 py-3 align-middle">
+                                {% if position.is_active %}
+                                <span class="inline-flex px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-medium">Aktiv</span>
+                                {% else %}
+                                <span class="inline-flex px-2.5 py-1 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium">Inaktiv</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 align-middle">
+                                <div class="flex items-center justify-end gap-1">
+                                    <button type="button" class="edit-toggle p-2 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition" title="Bearbeiten" aria-label="Bearbeiten">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <form method="POST" action="{{ url_for('master_data.positions_delete', key=position.key) }}" onsubmit="return confirm('Position {{ position.key }} wirklich löschen?')">
+                                        <button type="submit" class="p-2 text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition" title="Löschen" aria-label="Löschen">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="edit-row hidden {% if not position.is_active %}bg-slate-50 dark:bg-slate-900/30{% endif %}" data-key="{{ position.key }}">
+                            <td colspan="5" class="px-4 pb-4">
+                                <form method="POST" action="{{ url_for('master_data.positions_edit', key=position.key) }}" class="grid grid-cols-1 md:grid-cols-[140px_1fr_auto_auto] gap-3 items-end rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-900/50 p-4">
+                                    <div>
+                                        <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Schlüssel</label>
+                                        <input type="text" value="{{ position.key }}" readonly class="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white/70 dark:bg-slate-800 text-sm font-semibold uppercase">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Bezeichnung</label>
+                                        <input type="text" name="label" value="{{ position.label }}" maxlength="100" required class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-sm">
+                                    </div>
+                                    <label class="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300">
+                                        <input type="checkbox" name="is_active" value="y" {% if position.is_active %}checked{% endif %} class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+                                        Aktiv
+                                    </label>
+                                    <div class="flex items-center justify-end gap-2">
+                                        <button type="button" class="edit-cancel px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700 transition">Abbrechen</button>
+                                        <input type="hidden" name="sort_order" value="{{ position.sort_order }}">
+                                        <button type="submit" class="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition">
+                                            <i class="bi bi-check-lg"></i>
+                                            Speichern
+                                        </button>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+            {% else %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
+                                Keine Stammdaten vorhanden.
+                            </td>
+                        </tr>
+            {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-end gap-2 bg-slate-50/40 dark:bg-slate-900/20">
+            <button type="button" class="add-new-btn inline-flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-100 font-semibold rounded-lg transition text-sm">
+                <i class="bi bi-plus-lg"></i> Neu
+            </button>
+            <button type="button" class="save-order-btn inline-flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition text-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                <i class="bi bi-check-lg"></i> Speichern
+            </button>
+        </div>
+        <form id="position-order-form" method="POST" action="{{ url_for('master_data.positions_reorder') }}"></form>
     </section>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(() => {
+    const body = document.getElementById('positions-table-body');
+    const orderForm = document.getElementById('position-order-form');
+    const saveButtons = Array.from(document.querySelectorAll('.save-order-btn'));
+    const addButtons = Array.from(document.querySelectorAll('.add-new-btn'));
+    const newPanel = document.getElementById('new-position-panel');
+    const newCancel = document.getElementById('new-position-cancel');
+    const newKeyInput = document.getElementById('new-position-key');
+    const newSortOrderInput = document.getElementById('new-position-sort-order');
+
+    if (!body || !orderForm || !newPanel || !newCancel || !newSortOrderInput) {
+        return;
+    }
+
+    const rows = () => Array.from(body.querySelectorAll('.position-row'));
+    const editRows = () => Array.from(body.querySelectorAll('.edit-row'));
+    const hiddenOrderInputs = () => Array.from(orderForm.querySelectorAll('input[name="order"]'));
+    let orderChanged = false;
+
+    const setOrderChanged = (changed) => {
+        orderChanged = changed;
+        saveButtons.forEach((button) => {
+            button.disabled = !orderChanged;
+        });
+    };
+
+    const updateSortNumbers = () => {
+        rows().forEach((row, index) => {
+            const badge = row.querySelector('.sort-number');
+            if (badge) {
+                badge.textContent = String(index + 1);
+            }
+        });
+    };
+
+    const toggleNewPanel = (show) => {
+        newPanel.classList.toggle('hidden', !show);
+        if (show) {
+            newSortOrderInput.value = String(rows().length + 1);
+            newKeyInput?.focus();
+        }
+    };
+
+    const closeAllEditors = () => {
+        editRows().forEach((row) => row.classList.add('hidden'));
+    };
+
+    addButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            closeAllEditors();
+            toggleNewPanel(true);
+        });
+    });
+
+    newCancel.addEventListener('click', () => {
+        toggleNewPanel(false);
+    });
+
+    saveButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            syncOrder();
+            orderForm.submit();
+        });
+    });
+
+    body.addEventListener('click', (event) => {
+        const editButton = event.target.closest('.edit-toggle');
+        if (editButton) {
+            toggleNewPanel(false);
+            const row = editButton.closest('.position-row');
+            const key = row?.dataset.key;
+            const editor = key ? body.querySelector(`.edit-row[data-key="${key}"]`) : null;
+            if (!editor) {
+                return;
+            }
+            const isHidden = editor.classList.contains('hidden');
+            closeAllEditors();
+            if (isHidden) {
+                editor.classList.remove('hidden');
+            }
+            return;
+        }
+
+        const cancelButton = event.target.closest('.edit-cancel');
+        if (cancelButton) {
+            const editor = cancelButton.closest('.edit-row');
+            editor?.classList.add('hidden');
+        }
+    });
+
+    let draggedRow = null;
+
+    const syncOrder = () => {
+        hiddenOrderInputs().forEach((input) => input.remove());
+        rows().forEach((row) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'order';
+            input.value = row.dataset.key;
+            orderForm.appendChild(input);
+
+            const editor = body.querySelector(`.edit-row[data-key="${row.dataset.key}"]`);
+            if (editor) {
+                body.appendChild(editor);
+            }
+        });
+        updateSortNumbers();
+    };
+
+    rows().forEach((row) => {
+        row.addEventListener('dragstart', () => {
+            draggedRow = row;
+            row.classList.add('opacity-50');
+            closeAllEditors();
+        });
+
+        row.addEventListener('dragend', () => {
+            row.classList.remove('opacity-50');
+            draggedRow = null;
+        });
+
+        row.addEventListener('dragover', (event) => {
+            event.preventDefault();
+        });
+
+        row.addEventListener('drop', (event) => {
+            event.preventDefault();
+            if (!draggedRow || draggedRow === row) {
+                return;
+            }
+
+            const rowRect = row.getBoundingClientRect();
+            const dropAfter = event.clientY > rowRect.top + (rowRect.height / 2);
+            const draggedEditor = body.querySelector(`.edit-row[data-key="${draggedRow.dataset.key}"]`);
+
+            if (dropAfter) {
+                const nextEditor = body.querySelector(`.edit-row[data-key="${row.dataset.key}"]`);
+                body.insertBefore(draggedRow, nextEditor ? nextEditor.nextSibling : row.nextSibling);
+                if (draggedEditor) {
+                    body.insertBefore(draggedEditor, nextEditor ? nextEditor.nextSibling : draggedRow.nextSibling);
+                }
+            } else {
+                body.insertBefore(draggedRow, row);
+                if (draggedEditor) {
+                    body.insertBefore(draggedEditor, row);
+                }
+            }
+
+            syncOrder();
+            setOrderChanged(true);
+        });
+    });
+
+    syncOrder();
+    setOrderChanged(false);
+})();
+</script>
 {% endblock %}

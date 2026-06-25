@@ -45,11 +45,12 @@ def index(current_user):
     services = []
     for access in service_access:
         service = access.service
+        effective_role = 'admin' if user.role == 'admin' else access.role
         launch_kwargs = {'service_id': service.id}
         if requested_target:
             launch_kwargs['next'] = requested_target
         service.launch_url = url_for('dashboard.launch_service', **launch_kwargs)
-        service.assigned_role = access.role
+        service.assigned_role = effective_role
         service.audience = get_service_audience(service)
         services.append(service)
 
@@ -189,10 +190,11 @@ def launch_service(current_user, service_id):
 
     service_base = (service.url or '').rstrip('/')
     audience = get_service_audience(service)
+    effective_role = 'admin' if user.role == 'admin' else access.role
     token = generate_sso_token(
         user,
         audience=audience,
-        service_role=access.role,
+        service_role=effective_role,
         platform_role=user.role,
     )
     query_params = {'token': token}

@@ -24,12 +24,14 @@ def index(current_user):
     users = User.query.filter(User.account_status != 'draft').order_by(User.username).all()
 
     review_summary = _build_review_summary(users)
+    is_platform_admin = _is_platform_admin(current_user)
 
     return render_template(
         'users.html',
         users=users,
         current_user=current_user,
         review_summary=review_summary,
+        is_platform_admin=is_platform_admin,
     )
 
 
@@ -60,6 +62,7 @@ def review_history(current_user, user_id):
         user=user,
         events=events,
         reviewers=reviewers,
+        is_platform_admin=_is_platform_admin(current_user),
     )
 
 
@@ -104,6 +107,7 @@ def new(current_user):
         current_user=current_user,
         services=services,
         service_roles={},
+        is_platform_admin=_is_platform_admin(current_user),
     )
 
 
@@ -149,6 +153,7 @@ def edit(current_user, user_id):
         current_user=current_user,
         services=services,
         service_roles=service_roles,
+        is_platform_admin=_is_platform_admin(current_user),
     )
 
 
@@ -202,14 +207,18 @@ def delete(current_user, user_id):
 def _sync_service_access(user, services, form_data):
     allowed_roles = {'none', 'user', 'admin'}
     existing = {access.service_id: access for access in user.service_access}
+    is_platform_admin = (user.role or '').strip().lower() == 'admin'
 
     for service in services:
         field_name = f'service_role_{service.id}'
-        desired_role = (form_data.get(field_name) or 'none').strip().lower()
-        if desired_role not in allowed_roles:
-            desired_role = 'none'
-        if service.name in {'members', 'agenda'} and desired_role == 'none':
-            desired_role = 'user'
+        if is_platform_admin:
+            desired_role = 'admin'
+        else:
+            desired_role = (form_data.get(field_name) or 'none').strip().lower()
+            if desired_role not in allowed_roles:
+                desired_role = 'none'
+            if service.name in {'members', 'agenda'} and desired_role == 'none':
+                desired_role = 'user'
 
         current_access = existing.get(service.id)
         if desired_role == 'none':
