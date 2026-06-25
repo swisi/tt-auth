@@ -20,11 +20,16 @@
 - [ ] bessere Fehlermeldungen bei Login und SSO
 - [ ] Admin-Ansicht fuer Benutzerfreigaben pro Service
 
+## Zuletzt abgeschlossen
+
+- [x] serviceuebergreifender Theme-Sync ueber globale Cookie-Strategie
+- [x] robustere Logout-Cookie-Loeschung fuer unterschiedliche Domain-Scope-Varianten
+
 ## Mittelfristig
 
 - [ ] Benutzerprofile mit Stammdaten und Kontaktinfos
 - [ ] zentrale Speicherung von Benutzerpraeferenzen
-- [ ] Dark-Mode-Praferenz zentral speichern und an `tt-agenda` sowie `tt-analytics` weitergeben
+- [x] Dark-Mode-Praeferenz serviceuebergreifend verfuegbar gemacht
 - [ ] bevorzugte Sprache / Locale pro Benutzer speichern
 - [ ] Service-spezifische Rollen auf Plattformebene besser modellieren
 - [ ] Session-Management fuer aktive Geraete und Abmeldungen
