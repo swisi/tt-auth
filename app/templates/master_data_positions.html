@@ -1,14 +1,16 @@
 {% extends 'base.html' %}
 {% block title %}Stammdaten - Tigers Auth{% endblock %}
 
+{% set active_tab = 'admin' %}
+
 {% block content %}
-<div class="max-w-5xl mx-auto space-y-6">
+<div class="max-w-5xl mx-auto space-y-4">
     <div>
-        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Stammdaten: Positionen</h1>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Zentrale Liste für Profil und Agenda.</p>
+        <h1 class="text-lg font-bold text-slate-900 dark:text-white">Stammdaten: Positionen</h1>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Zentrale Liste für Profil und Agenda.</p>
     </div>
 
-    <section class="bg-white dark:bg-slate-800 rounded-2xl shadow border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <section class="bg-white dark:bg-slate-800 rounded-xl shadow border border-slate-200 dark:border-slate-700 overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
             <div>
                 <h2 class="text-base font-semibold">Vorhandene Positionen</h2>
