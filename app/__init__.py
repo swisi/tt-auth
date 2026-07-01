@@ -118,6 +118,15 @@ def _seed_default_services(app):
             'required_role': 'user',
             'sort_order': 20,
         },
+        {
+            'name': 'attendance',
+            'url': app.config.get('DEFAULT_ATTENDANCE_URL', 'http://localhost:5090'),
+            'internal_url': app.config.get('DEFAULT_ATTENDANCE_INTERNAL_URL', 'http://host.docker.internal:5090'),
+            'icon': 'hand-thumbs-up',
+            'description': 'Trainingsanmeldung und Teilnehmerverwaltung',
+            'required_role': 'user',
+            'sort_order': 15,
+        },
     ]
 
     created = []
